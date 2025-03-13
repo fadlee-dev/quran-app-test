@@ -17,7 +17,7 @@ const SurahSeo = ({
   versesCount,
 }: SurahSeoProps) => {
   const title = `Surah ${englishName} (${surahName}) - Quran App`;
-  const description = `Read Surah ${englishName} (${surahNameTranslation}) with ${versesCount} verses. The ${englishNameTranslation} chapter of the Holy Quran with translation and auto-scroll reading mode.`;
+  const description = `Read Surah ${englishName} (${englishNameTranslation}) with ${versesCount} verses. The ${englishNameTranslation} chapter of the Holy Quran with translation and auto-scroll reading mode.`;
   const canonicalUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/surah/${surahNumber}`
