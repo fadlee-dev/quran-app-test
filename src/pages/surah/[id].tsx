@@ -4,6 +4,11 @@ import SurahHeader from "@/components/surah/SurahHeader";
 import AyahList from "@/components/surah/AyahList";
 import SurahNavigation from "@/components/navigation/SurahNavigation";
 import { getSurahWithTranslation } from "@/services/quranService";
+import MetaTags from "@/components/seo/MetaTags";
+import {
+  generateSurahStructuredData,
+  injectStructuredData,
+} from "@/utils/seoUtils";
 
 interface Ayah {
   number: number;
@@ -60,6 +65,20 @@ const SurahPage: React.FC = () => {
           numberOfAyahs: surahData.numberOfAyahs,
           ayahs: combinedAyahs,
         });
+
+        // Add structured data for SEO
+        const structuredData = generateSurahStructuredData({
+          surahNumber: surahData.number,
+          surahName: surahData.name,
+          englishName: surahData.englishName,
+          englishNameTranslation: surahData.englishNameTranslation,
+          versesCount: surahData.numberOfAyahs,
+          url:
+            typeof window !== "undefined"
+              ? window.location.href
+              : `/surah/${surahId}`,
+        });
+        injectStructuredData(structuredData);
       } catch (err) {
         console.error("Failed to fetch surah data:", err);
         setError("Failed to load surah data. Please try again later.");
@@ -69,6 +88,12 @@ const SurahPage: React.FC = () => {
     };
 
     fetchSurahData();
+
+    // Clean up structured data when component unmounts
+    return () => {
+      const script = document.getElementById("structured-data");
+      if (script) script.remove();
+    };
   }, [surahId]);
 
   const handleBackClick = () => {
@@ -127,6 +152,11 @@ const SurahPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <MetaTags
+        title={`Surah ${surah.englishName} (${surah.name}) - Quran App`}
+        description={`Read Surah ${surah.englishName} (${surah.englishNameTranslation}) with ${surah.numberOfAyahs} verses. The ${surah.englishNameTranslation} chapter of the Holy Quran with translation.`}
+        canonicalUrl={`${window.location.origin}/surah/${surahId}`}
+      />
       <SurahHeader
         surahNumber={surah.number}
         surahName={surah.englishName}

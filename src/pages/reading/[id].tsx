@@ -5,6 +5,7 @@ import QuranText from "@/components/reading/QuranText";
 import AyahJumpDialog from "@/components/reading/AyahJumpDialog";
 import BookmarkDialog from "@/components/reading/BookmarkDialog";
 import { getSurahWithTranslation } from "@/services/quranService";
+import MetaTags from "@/components/seo/MetaTags";
 
 interface SurahData {
   id: number;
@@ -25,7 +26,16 @@ const ReadingPage = () => {
 
   // State for reading mode
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
-  const [scrollSpeed, setScrollSpeed] = useState(50);
+  const [scrollSpeed, setScrollSpeed] = useState(() => {
+    // Get saved scroll speed from localStorage or use default
+    const savedSpeed = localStorage.getItem("scrollSpeed");
+    return savedSpeed ? parseInt(savedSpeed, 10) : 30; // Default to a slower speed
+  });
+  const [showTranslation, setShowTranslation] = useState(() => {
+    // Get saved translation preference from localStorage or use default
+    const savedPref = localStorage.getItem("showTranslation");
+    return savedPref !== null ? savedPref === "true" : true; // Default to showing translation
+  });
   const [currentAyah, setCurrentAyah] = useState(1);
 
   // Dialog states
@@ -82,7 +92,19 @@ const ReadingPage = () => {
 
   // Handle scroll speed change
   const handleScrollSpeedChange = (speed: number) => {
+    // Store the scroll speed in localStorage for persistence
+    localStorage.setItem("scrollSpeed", speed.toString());
     setScrollSpeed(speed);
+  };
+
+  // Handle translation toggle
+  const handleToggleTranslation = () => {
+    setShowTranslation((prev) => {
+      const newValue = !prev;
+      // Store the preference in localStorage
+      localStorage.setItem("showTranslation", newValue.toString());
+      return newValue;
+    });
   };
 
   // Navigation handlers
@@ -173,6 +195,15 @@ const ReadingPage = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
+      <MetaTags
+        title={`Reading Surah ${surahData.englishName} - Quran App`}
+        description={`Read Surah ${surahData.englishName} in reading mode with auto-scroll functionality and translation options. Immerse yourself in the Holy Quran.`}
+        canonicalUrl={
+          typeof window !== "undefined"
+            ? `${window.location.origin}/reading/${surahId}`
+            : `/reading/${surahId}`
+        }
+      />
       {/* Main reading area */}
       <div className="flex-1 overflow-hidden pb-32">
         <QuranText
@@ -180,6 +211,7 @@ const ReadingPage = () => {
           ayahs={surahData.ayahs}
           autoScroll={isAutoScrolling}
           scrollSpeed={scrollSpeed}
+          showTranslation={showTranslation}
           onAyahView={handleAyahInView}
         />
       </div>
@@ -188,8 +220,10 @@ const ReadingPage = () => {
       <ReadingControls
         isAutoScrolling={isAutoScrolling}
         scrollSpeed={scrollSpeed}
+        showTranslation={showTranslation}
         onToggleAutoScroll={handleToggleAutoScroll}
         onChangeScrollSpeed={handleScrollSpeedChange}
+        onToggleTranslation={handleToggleTranslation}
         onNavigateBack={handleNavigateBack}
         onNavigateHome={handleNavigateHome}
         onNavigatePrevious={handleNavigatePrevious}

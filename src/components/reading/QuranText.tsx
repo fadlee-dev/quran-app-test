@@ -11,6 +11,7 @@ interface QuranTextProps {
   }>;
   autoScroll?: boolean;
   scrollSpeed?: number;
+  showTranslation?: boolean;
   onAyahView?: (ayahNumber: number) => void;
 }
 
@@ -57,6 +58,7 @@ const QuranText = ({
   ],
   autoScroll = false,
   scrollSpeed = 1,
+  showTranslation = true,
   onAyahView = () => {},
 }: QuranTextProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -103,16 +105,20 @@ const QuranText = ({
 
     if (isScrolling && scrollRef.current) {
       // Calculate scroll speed based on the user's preference
-      // Lower number = faster scroll
-      const scrollStep = 0.5 * scrollSpeed;
+      // Higher number = faster scroll (reversed from the UI where higher = slower)
+      // Reduce the speed by dividing by a larger number to make it slower
+      const scrollStep = scrollSpeed / 50;
 
       scrollInterval = window.setInterval(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollTop += scrollStep;
+        const scrollContainer = scrollRef.current?.querySelector(
+          "[data-radix-scroll-area-viewport]",
+        );
+        if (scrollContainer) {
+          scrollContainer.scrollTop += scrollStep;
 
           // If we've reached the bottom, stop scrolling
-          const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-          if (scrollTop + clientHeight >= scrollHeight) {
+          const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+          if (scrollTop + clientHeight >= scrollHeight - 20) {
             setIsScrolling(false);
           }
         }
@@ -157,7 +163,7 @@ const QuranText = ({
                   >
                     {ayah.text}
                   </p>
-                  {ayah.translation && (
+                  {showTranslation && ayah.translation && (
                     <p className="text-base md:text-lg text-muted-foreground">
                       {ayah.translation}
                     </p>

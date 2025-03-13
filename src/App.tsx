@@ -13,6 +13,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/surah/:id" element={<SurahPage />} />
           <Route path="/reading/:id" element={<ReadingPage />} />
+          {import.meta.env.VITE_TEMPO === "true" && (
+            <Route path="/tempobook/*" />
+          )}
         </Routes>
         {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
       </>

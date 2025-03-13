@@ -1,22 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import Header from "./layout/Header";
 import TabNavigation from "./navigation/TabNavigation";
 import SurahList from "./surah/SurahList";
 import BookmarkList from "./bookmarks/BookmarkList";
 import SettingsPanel from "./settings/SettingsPanel";
+import MetaTags from "./seo/MetaTags";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("surahs");
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Initialize theme from localStorage or system preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else if (savedTheme === "light") {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    } else if (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      // Use system preference if no saved preference
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
 
   const handleThemeToggle = () => {
-    setIsDarkMode(!isDarkMode);
-    // In a real implementation, this would update the theme in the app context or localStorage
+    setIsDarkMode((prevMode) => {
+      const newMode = !prevMode;
+      if (newMode) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+      }
+      return newMode;
+    });
   };
 
   const handleSurahSelect = (surahId: number) => {
@@ -35,12 +64,24 @@ const Home = () => {
   };
 
   const handleSaveSettings = (settings: any) => {
-    // In a real implementation, this would save settings to storage
+    // Apply theme setting if it changed
+    if (settings.theme === "dark" && !isDarkMode) {
+      handleThemeToggle();
+    } else if (settings.theme === "light" && isDarkMode) {
+      handleThemeToggle();
+    }
+
+    // Save other settings
+    localStorage.setItem("quranAppSettings", JSON.stringify(settings));
     console.log("Save settings:", settings);
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      <MetaTags
+        title="Quran App - Read, Reflect, Remember"
+        description="A modern Quran reading application with auto-scroll, bookmarks, and multiple translations. Read the Holy Quran with ease on any device."
+      />
       <Header
         title="Quran App"
         isDarkMode={isDarkMode}
@@ -63,7 +104,10 @@ const Home = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="h-full">
-            <SettingsPanel onSave={handleSaveSettings} />
+            <SettingsPanel
+              onSave={handleSaveSettings}
+              initialSettings={{ theme: isDarkMode ? "dark" : "light" }}
+            />
           </TabsContent>
         </Tabs>
       </main>

@@ -27,17 +27,26 @@ const TabNavigation = ({
         onValueChange={handleTabChange}
         className="w-full max-w-3xl mx-auto"
       >
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="surahs" className="flex items-center gap-2">
-            <Home size={18} />
+        <TabsList className="grid grid-cols-3 w-full h-10">
+          <TabsTrigger
+            value="surahs"
+            className="flex items-center gap-2 text-xs"
+          >
+            <Home size={16} />
             <span className="hidden sm:inline">Surahs</span>
           </TabsTrigger>
-          <TabsTrigger value="bookmarks" className="flex items-center gap-2">
-            <BookMarked size={18} />
+          <TabsTrigger
+            value="bookmarks"
+            className="flex items-center gap-2 text-xs"
+          >
+            <BookMarked size={16} />
             <span className="hidden sm:inline">Bookmarks</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings size={18} />
+          <TabsTrigger
+            value="settings"
+            className="flex items-center gap-2 text-xs"
+          >
+            <Settings size={16} />
             <span className="hidden sm:inline">Settings</span>
           </TabsTrigger>
         </TabsList>

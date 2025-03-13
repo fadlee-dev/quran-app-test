@@ -17,17 +17,17 @@ const Header = ({
   onMenuClick = () => {},
 }: HeaderProps) => {
   return (
-    <header className="w-full h-16 bg-background border-b border-border flex items-center justify-between px-4 sticky top-0 z-50">
+    <header className="w-full h-12 bg-background border-b border-border flex items-center justify-between px-4 sticky top-0 z-50 shadow-sm">
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
           onClick={onMenuClick}
-          className="md:hidden"
+          className="md:hidden h-8 w-8"
         >
-          <MenuIcon className="h-5 w-5" />
+          <MenuIcon className="h-4 w-4" />
         </Button>
-        <h1 className="text-xl font-bold text-foreground">{title}</h1>
+        <h1 className="text-lg font-bold text-foreground">{title}</h1>
       </div>
 
       <div className="flex items-center gap-2">
@@ -35,14 +35,15 @@ const Header = ({
           variant="ghost"
           size="icon"
           onClick={onThemeToggle}
+          className="h-8 w-8"
           aria-label={
             isDarkMode ? "Switch to light mode" : "Switch to dark mode"
           }
         >
           {isDarkMode ? (
-            <SunIcon className="h-5 w-5" />
+            <SunIcon className="h-4 w-4" />
           ) : (
-            <MoonIcon className="h-5 w-5" />
+            <MoonIcon className="h-4 w-4" />
           )}
         </Button>
       </div>

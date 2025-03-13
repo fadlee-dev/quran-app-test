@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 
 interface SettingsPanelProps {
   onSave?: (settings: SettingsState) => void;
+  initialSettings?: Partial<SettingsState>;
 }
 
 interface SettingsState {
@@ -32,14 +33,17 @@ interface SettingsState {
   fontSizeTranslation: string;
 }
 
-const SettingsPanel = ({ onSave = () => {} }: SettingsPanelProps) => {
+const SettingsPanel = ({
+  onSave = () => {},
+  initialSettings = {},
+}: SettingsPanelProps) => {
   const [settings, setSettings] = useState<SettingsState>({
-    theme: "light",
-    translationLanguage: "english",
-    autoScrollEnabled: false,
-    scrollSpeed: "medium",
-    fontSizeArabic: "large",
-    fontSizeTranslation: "medium",
+    theme: initialSettings.theme || "light",
+    translationLanguage: initialSettings.translationLanguage || "english",
+    autoScrollEnabled: initialSettings.autoScrollEnabled || false,
+    scrollSpeed: initialSettings.scrollSpeed || "medium",
+    fontSizeArabic: initialSettings.fontSizeArabic || "large",
+    fontSizeTranslation: initialSettings.fontSizeTranslation || "medium",
   });
 
   const handleThemeToggle = () => {

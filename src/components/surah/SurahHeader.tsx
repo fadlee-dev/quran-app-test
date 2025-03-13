@@ -33,24 +33,39 @@ const SurahHeader: React.FC<SurahHeaderProps> = ({
   onNextSurah = () => {},
 }) => {
   return (
-    <div className="bg-background border-b p-4 sticky top-0 z-10 w-full">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-background border-b py-2 px-4 sticky top-0 z-10 w-full shadow-sm">
+      <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBackClick}
             aria-label="Back to surah list"
+            className="h-8 w-8"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold">{surahName}</h1>
-          <Badge variant="outline" className="ml-2">
-            {revelationType}
-          </Badge>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold">{surahName}</h1>
+              <Badge variant="outline" className="text-xs">
+                {revelationType}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="secondary" className="text-xs h-5">
+                {surahNumber}
+              </Badge>
+              <h2 className="font-semibold text-primary">{surahNameArabic}</h2>
+              <div className="flex items-center space-x-1">
+                <Info className="h-3 w-3" />
+                <span>{versesCount} verses</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -60,8 +75,9 @@ const SurahHeader: React.FC<SurahHeaderProps> = ({
                   onClick={onPreviousSurah}
                   disabled={surahNumber <= 1}
                   aria-label="Previous surah"
+                  className="h-8 w-8"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -79,8 +95,9 @@ const SurahHeader: React.FC<SurahHeaderProps> = ({
                   onClick={onNextSurah}
                   disabled={surahNumber >= 114}
                   aria-label="Next surah"
+                  className="h-8 w-8"
                 >
-                  <ArrowRight className="h-5 w-5" />
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -88,37 +105,6 @@ const SurahHeader: React.FC<SurahHeaderProps> = ({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
-          <Button
-            variant="default"
-            onClick={onReadClick}
-            className="ml-2"
-            aria-label="Enter reading mode"
-          >
-            <BookOpen className="h-4 w-4 mr-2" />
-            Read
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Badge variant="secondary" className="text-sm">
-                {surahNumber}
-              </Badge>
-              <h2 className="text-xl font-semibold text-primary">
-                {surahNameArabic}
-              </h2>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Info className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                {versesCount} verses
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -19,6 +19,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   HomeIcon,
+  Languages,
   PauseIcon,
   PlayIcon,
   SettingsIcon,
@@ -29,8 +30,10 @@ import {
 interface ReadingControlsProps {
   isAutoScrolling?: boolean;
   scrollSpeed?: number;
+  showTranslation?: boolean;
   onToggleAutoScroll?: () => void;
   onChangeScrollSpeed?: (speed: number) => void;
+  onToggleTranslation?: () => void;
   onNavigateBack?: () => void;
   onNavigateHome?: () => void;
   onNavigatePrevious?: () => void;
@@ -48,8 +51,10 @@ interface ReadingControlsProps {
 const ReadingControls: React.FC<ReadingControlsProps> = ({
   isAutoScrolling = false,
   scrollSpeed = 50,
+  showTranslation = true,
   onToggleAutoScroll = () => {},
   onChangeScrollSpeed = () => {},
+  onToggleTranslation = () => {},
   onNavigateBack = () => {},
   onNavigateHome = () => {},
   onNavigatePrevious = () => {},
@@ -62,10 +67,10 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
   const [showSpeedControls, setShowSpeedControls] = useState(false);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-3 flex flex-col gap-2 shadow-lg z-10">
+    <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-2 flex flex-col gap-1 shadow-lg z-10">
       {/* Main controls */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -74,8 +79,9 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
                   size="icon"
                   onClick={onNavigateBack}
                   aria-label="Back"
+                  className="h-8 w-8"
                 >
-                  <ChevronLeftIcon className="h-5 w-5" />
+                  <ChevronLeftIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Back</TooltipContent>
@@ -90,8 +96,9 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
                   size="icon"
                   onClick={onNavigateHome}
                   aria-label="Home"
+                  className="h-8 w-8"
                 >
-                  <HomeIcon className="h-5 w-5" />
+                  <HomeIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Home</TooltipContent>
@@ -99,7 +106,7 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
           </TooltipProvider>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -108,33 +115,23 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
                   size="icon"
                   onClick={onNavigatePrevious}
                   aria-label="Previous Surah"
+                  className="h-8 w-8"
                 >
-                  <SkipBackIcon className="h-5 w-5" />
+                  <SkipBackIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Previous Surah</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                onClick={onOpenAyahJumpDialog}
-                className="px-3 py-1 h-8 text-xs"
-              >
-                {currentSurah.englishName} ({currentSurah.id})
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Jump to Ayah</DialogTitle>
-              </DialogHeader>
-              <div className="p-4 text-center">
-                <p>Ayah jump dialog content will be implemented here</p>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="outline"
+            onClick={onOpenAyahJumpDialog}
+            className="px-2 py-1 h-7 text-xs"
+            size="sm"
+          >
+            {currentSurah.englishName} ({currentSurah.id})
+          </Button>
 
           <TooltipProvider>
             <Tooltip>
@@ -144,8 +141,9 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
                   size="icon"
                   onClick={onNavigateNext}
                   aria-label="Next Surah"
+                  className="h-8 w-8"
                 >
-                  <SkipForwardIcon className="h-5 w-5" />
+                  <SkipForwardIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Next Surah</TooltipContent>
@@ -153,7 +151,7 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
           </TooltipProvider>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -162,11 +160,33 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
                   size="icon"
                   onClick={onOpenBookmarkDialog}
                   aria-label="Bookmark"
+                  className="h-8 w-8"
                 >
-                  <BookmarkIcon className="h-5 w-5" />
+                  <BookmarkIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Bookmark</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={showTranslation ? "default" : "ghost"}
+                  size="icon"
+                  onClick={onToggleTranslation}
+                  aria-label={
+                    showTranslation ? "Hide Translation" : "Show Translation"
+                  }
+                  className="h-8 w-8"
+                >
+                  <Languages className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {showTranslation ? "Hide Translation" : "Show Translation"}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -178,8 +198,9 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
                   size="icon"
                   onClick={onOpenSettings}
                   aria-label="Settings"
+                  className="h-8 w-8"
                 >
-                  <SettingsIcon className="h-5 w-5" />
+                  <SettingsIcon className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Settings</TooltipContent>
@@ -194,21 +215,21 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
           variant={isAutoScrolling ? "default" : "outline"}
           size="sm"
           onClick={onToggleAutoScroll}
-          className="flex items-center gap-2"
+          className="flex items-center gap-1 h-7 px-2"
         >
           {isAutoScrolling ? (
             <>
-              <PauseIcon className="h-4 w-4" /> Pause
+              <PauseIcon className="h-3 w-3" /> Pause
             </>
           ) : (
             <>
-              <PlayIcon className="h-4 w-4" /> Auto-Scroll
+              <PlayIcon className="h-3 w-3" /> Auto-Scroll
             </>
           )}
         </Button>
 
         {isAutoScrolling && (
-          <div className="flex items-center gap-2 flex-1 ml-4">
+          <div className="flex items-center gap-1 flex-1 ml-2">
             <span className="text-xs text-muted-foreground">Speed:</span>
             <Slider
               value={[scrollSpeed]}
@@ -216,7 +237,7 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
               max={100}
               step={5}
               onValueChange={(value) => onChangeScrollSpeed(value[0])}
-              className="w-32 md:w-48"
+              className="w-28 md:w-40"
             />
             <span className="text-xs font-medium">{scrollSpeed}%</span>
           </div>
