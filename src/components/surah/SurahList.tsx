@@ -1,73 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { ScrollArea } from "../ui/scroll-area";
 import { Search, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Surah {
-  number: number;
-  name: string;
-  englishName: string;
-  englishNameTranslation: string;
-  numberOfAyahs: number;
-  revelationType: string;
-}
+import { getAllSurahs, Surah as SurahType } from "@/services/quranService";
 
 interface SurahListProps {
-  surahs?: Surah[];
+  surahs?: SurahType[];
   isLoading?: boolean;
   onSurahSelect?: (surahId: number) => void;
 }
 
 const SurahList = ({
-  surahs = [
-    {
-      number: 1,
-      name: "الفاتحة",
-      englishName: "Al-Fatiha",
-      englishNameTranslation: "The Opening",
-      numberOfAyahs: 7,
-      revelationType: "Meccan",
-    },
-    {
-      number: 2,
-      name: "البقرة",
-      englishName: "Al-Baqarah",
-      englishNameTranslation: "The Cow",
-      numberOfAyahs: 286,
-      revelationType: "Medinan",
-    },
-    {
-      number: 3,
-      name: "آل عمران",
-      englishName: "Aal-Imran",
-      englishNameTranslation: "The Family of Imran",
-      numberOfAyahs: 200,
-      revelationType: "Medinan",
-    },
-    {
-      number: 4,
-      name: "النساء",
-      englishName: "An-Nisa",
-      englishNameTranslation: "The Women",
-      numberOfAyahs: 176,
-      revelationType: "Medinan",
-    },
-    {
-      number: 5,
-      name: "المائدة",
-      englishName: "Al-Ma'idah",
-      englishNameTranslation: "The Table Spread",
-      numberOfAyahs: 120,
-      revelationType: "Medinan",
-    },
-  ],
-  isLoading = false,
+  surahs: propSurahs,
+  isLoading: propIsLoading = false,
   onSurahSelect = () => {},
 }: SurahListProps) => {
+  const [surahs, setSurahs] = useState<SurahType[]>([]);
+  const [isLoading, setIsLoading] = useState(propIsLoading);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSurahs = async () => {
+      if (propSurahs) {
+        setSurahs(propSurahs);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const data = await getAllSurahs();
+        setSurahs(data);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch surahs:", err);
+        setError("Failed to load surahs. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSurahs();
+  }, [propSurahs]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredSurahs = surahs.filter(
@@ -96,6 +73,13 @@ const SurahList = ({
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center h-64 text-center">
+          <p className="text-destructive mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Try Again
+          </Button>
         </div>
       ) : (
         <ScrollArea className="h-[calc(100vh-200px)]">

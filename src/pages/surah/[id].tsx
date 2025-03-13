@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import SurahHeader from "@/components/surah/SurahHeader";
 import AyahList from "@/components/surah/AyahList";
 import SurahNavigation from "@/components/navigation/SurahNavigation";
+import { getSurahWithTranslation } from "@/services/quranService";
 
 interface Ayah {
   number: number;
@@ -34,79 +35,40 @@ const SurahPage: React.FC = () => {
     englishNameTranslation: "The Opening",
     revelationType: "Meccan",
     numberOfAyahs: 7,
-    ayahs: [
-      {
-        number: 1,
-        text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-        translation:
-          "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
-        juz: 1,
-        page: 1,
-      },
-      {
-        number: 2,
-        text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-        translation: "[All] praise is [due] to Allah, Lord of the worlds -",
-        juz: 1,
-        page: 1,
-      },
-      {
-        number: 3,
-        text: "الرَّحْمَٰنِ الرَّحِيمِ",
-        translation: "The Entirely Merciful, the Especially Merciful,",
-        juz: 1,
-        page: 1,
-      },
-      {
-        number: 4,
-        text: "مَالِكِ يَوْمِ الدِّينِ",
-        translation: "Sovereign of the Day of Recompense.",
-        juz: 1,
-        page: 1,
-      },
-      {
-        number: 5,
-        text: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
-        translation: "It is You we worship and You we ask for help.",
-        juz: 1,
-        page: 1,
-      },
-      {
-        number: 6,
-        text: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
-        translation: "Guide us to the straight path -",
-        juz: 1,
-        page: 1,
-      },
-      {
-        number: 7,
-        text: "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
-        translation:
-          "The path of those upon whom You have bestowed favor, not of those who have evoked [Your] anger or of those who are astray.",
-        juz: 1,
-        page: 1,
-      },
-    ],
+    ayahs: [],
   });
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState<boolean>(true);
 
   useEffect(() => {
-    // In a real implementation, this would fetch data from the alquran.cloud API
-    // For now, we're just simulating a data fetch with our default state
-    setLoading(true);
+    const fetchSurahData = async () => {
+      setLoading(true);
+      setError(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Update surah number based on the URL parameter
-      setSurah((prev) => ({
-        ...prev,
-        number: surahId,
-      }));
-      setLoading(false);
-    }, 500);
+      try {
+        const { surah: surahData, combinedAyahs } =
+          await getSurahWithTranslation(surahId);
+
+        setSurah({
+          number: surahData.number,
+          name: surahData.name,
+          englishName: surahData.englishName,
+          englishNameTranslation: surahData.englishNameTranslation,
+          revelationType: surahData.revelationType,
+          numberOfAyahs: surahData.numberOfAyahs,
+          ayahs: combinedAyahs,
+        });
+      } catch (err) {
+        console.error("Failed to fetch surah data:", err);
+        setError("Failed to load surah data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSurahData();
   }, [surahId]);
 
   const handleBackClick = () => {

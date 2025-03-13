@@ -4,11 +4,13 @@ import ReadingControls from "@/components/reading/ReadingControls";
 import QuranText from "@/components/reading/QuranText";
 import AyahJumpDialog from "@/components/reading/AyahJumpDialog";
 import BookmarkDialog from "@/components/reading/BookmarkDialog";
+import { getSurahWithTranslation } from "@/services/quranService";
 
 interface SurahData {
   id: number;
   name: string;
   englishName: string;
+  englishNameTranslation?: string;
   ayahs: Array<{
     number: number;
     text: string;
@@ -30,62 +32,47 @@ const ReadingPage = () => {
   const [isAyahJumpDialogOpen, setIsAyahJumpDialogOpen] = useState(false);
   const [isBookmarkDialogOpen, setIsBookmarkDialogOpen] = useState(false);
 
-  // Mock surah data - in a real app, this would be fetched from the API
+  // Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Surah data state
   const [surahData, setSurahData] = useState<SurahData>({
     id: surahId,
     name: "الفاتحة",
     englishName: "Al-Fatiha",
-    ayahs: [
-      {
-        number: 1,
-        text: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-        translation:
-          "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
-      },
-      {
-        number: 2,
-        text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-        translation: "All praise is due to Allah, Lord of the worlds.",
-      },
-      {
-        number: 3,
-        text: "الرَّحْمَٰنِ الرَّحِيمِ",
-        translation: "The Entirely Merciful, the Especially Merciful.",
-      },
-      {
-        number: 4,
-        text: "مَالِكِ يَوْمِ الدِّينِ",
-        translation: "Sovereign of the Day of Recompense.",
-      },
-      {
-        number: 5,
-        text: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
-        translation: "It is You we worship and You we ask for help.",
-      },
-      {
-        number: 6,
-        text: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
-        translation: "Guide us to the straight path.",
-      },
-      {
-        number: 7,
-        text: "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
-        translation:
-          "The path of those upon whom You have bestowed favor, not of those who have earned [Your] anger or of those who are astray.",
-      },
-    ],
+    ayahs: [],
   });
 
-  // Fetch surah data effect - simulated
+  // Fetch surah data from API
   useEffect(() => {
-    // In a real app, this would be an API call
-    // fetchSurahData(surahId).then(data => setSurahData(data));
+    const fetchSurahData = async () => {
+      setLoading(true);
+      setError(null);
 
-    // For now, we'll just update the ID in our mock data
-    setSurahData((prevData) => ({
-      ...prevData,
-      id: surahId,
-    }));
+      try {
+        const { surah, combinedAyahs } = await getSurahWithTranslation(surahId);
+
+        setSurahData({
+          id: surah.number,
+          name: surah.name,
+          englishName: surah.englishName,
+          englishNameTranslation: surah.englishNameTranslation,
+          ayahs: combinedAyahs.map((ayah) => ({
+            number: ayah.number,
+            text: ayah.text,
+            translation: ayah.translation,
+          })),
+        });
+      } catch (err) {
+        console.error("Failed to fetch surah data for reading:", err);
+        setError("Failed to load surah data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSurahData();
   }, [surahId]);
 
   // Handle auto-scroll toggle
@@ -155,6 +142,34 @@ const ReadingPage = () => {
   const handleAyahInView = (ayahNumber: number) => {
     setCurrentAyah(ayahNumber);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading surah...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center p-6 max-w-md bg-card rounded-lg shadow-md">
+          <h2 className="text-xl font-bold text-destructive mb-2">Error</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <button
+            onClick={() => navigate("/")}
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">
