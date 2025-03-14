@@ -27,14 +27,24 @@ const ReadingPage = () => {
   // State for reading mode
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(() => {
-    // Get saved scroll speed from localStorage or use default
-    const savedSpeed = localStorage.getItem("scrollSpeed");
-    return savedSpeed ? parseInt(savedSpeed, 10) : 30; // Default to a slower speed
+    try {
+      // Get saved scroll speed from localStorage or use default
+      const savedSpeed = localStorage.getItem("scrollSpeed");
+      return savedSpeed ? parseInt(savedSpeed, 10) : 30; // Default to a slower speed
+    } catch (e) {
+      // In case localStorage is not available
+      return 30;
+    }
   });
   const [showTranslation, setShowTranslation] = useState(() => {
-    // Get saved translation preference from localStorage or use default
-    const savedPref = localStorage.getItem("showTranslation");
-    return savedPref !== null ? savedPref === "true" : true; // Default to showing translation
+    try {
+      // Get saved translation preference from localStorage or use default
+      const savedPref = localStorage.getItem("showTranslation");
+      return savedPref !== null ? savedPref === "true" : true; // Default to showing translation
+    } catch (e) {
+      // In case localStorage is not available
+      return true;
+    }
   });
   const [currentAyah, setCurrentAyah] = useState(1);
 
@@ -93,7 +103,11 @@ const ReadingPage = () => {
   // Handle scroll speed change
   const handleScrollSpeedChange = (speed: number) => {
     // Store the scroll speed in localStorage for persistence
-    localStorage.setItem("scrollSpeed", speed.toString());
+    try {
+      localStorage.setItem("scrollSpeed", speed.toString());
+    } catch (e) {
+      console.warn("Could not save scroll speed to localStorage", e);
+    }
     setScrollSpeed(speed);
   };
 
@@ -102,7 +116,14 @@ const ReadingPage = () => {
     setShowTranslation((prev) => {
       const newValue = !prev;
       // Store the preference in localStorage
-      localStorage.setItem("showTranslation", newValue.toString());
+      try {
+        localStorage.setItem("showTranslation", newValue.toString());
+      } catch (e) {
+        console.warn(
+          "Could not save translation preference to localStorage",
+          e,
+        );
+      }
       return newValue;
     });
   };

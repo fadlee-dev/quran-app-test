@@ -67,33 +67,50 @@ const QuranText = ({
 
   // Set up intersection observer to detect which ayah is in view
   useEffect(() => {
-    const options = {
-      root: scrollRef.current,
-      rootMargin: "0px",
-      threshold: 0.5,
-    };
+    // Small delay to ensure DOM is ready
+    const initObserver = setTimeout(() => {
+      const options = {
+        root: scrollRef.current?.querySelector(
+          "[data-radix-scroll-area-viewport]",
+        ),
+        rootMargin: "0px",
+        threshold: 0.3,
+      };
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
+      const observer = new IntersectionObserver((entries) => {
+        // Find the entry with the largest intersection ratio
+        let maxEntry = entries[0];
+        entries.forEach((entry) => {
+          if (
+            entry.isIntersecting &&
+            (!maxEntry || entry.intersectionRatio > maxEntry.intersectionRatio)
+          ) {
+            maxEntry = entry;
+          }
+        });
+
+        if (maxEntry && maxEntry.isIntersecting) {
           const ayahNumber = parseInt(
-            entry.target.getAttribute("data-ayah-number") || "1",
+            maxEntry.target.getAttribute("data-ayah-number") || "1",
           );
           setCurrentAyah(ayahNumber);
           onAyahView(ayahNumber);
         }
+      }, options);
+
+      // Observe all ayah elements
+      const ayahElements = document.querySelectorAll("[data-ayah-number]");
+      ayahElements.forEach((ayah) => {
+        observer.observe(ayah);
       });
-    }, options);
 
-    // Observe all ayah elements
-    document.querySelectorAll("[data-ayah-number]").forEach((ayah) => {
-      observer.observe(ayah);
-    });
+      return () => {
+        observer.disconnect();
+      };
+    }, 100);
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [onAyahView]);
+    return () => clearTimeout(initObserver);
+  }, [onAyahView, ayahs.length]);
 
   // Handle auto-scrolling
   useEffect(() => {
@@ -101,33 +118,60 @@ const QuranText = ({
   }, [autoScroll]);
 
   useEffect(() => {
-    let scrollInterval: number | null = null;
+    let animationFrameId: number | null = null;
+    let lastTimestamp: number | null = null;
+    let accumulatedDelta = 0;
 
     if (isScrolling && scrollRef.current) {
       // Calculate scroll speed based on the user's preference
-      // Higher number = faster scroll (reversed from the UI where higher = slower)
-      // Reduce the speed by dividing by a larger number to make it slower
-      const scrollStep = scrollSpeed / 50;
+      // Convert percentage to pixels per second (higher = faster)
+      const pixelsPerSecond = (scrollSpeed / 100) * 40;
 
-      scrollInterval = window.setInterval(() => {
-        const scrollContainer = scrollRef.current?.querySelector(
-          "[data-radix-scroll-area-viewport]",
-        );
-        if (scrollContainer) {
-          scrollContainer.scrollTop += scrollStep;
+      const scrollStep = (timestamp: number) => {
+        if (!lastTimestamp) {
+          lastTimestamp = timestamp;
+        }
 
-          // If we've reached the bottom, stop scrolling
-          const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
-          if (scrollTop + clientHeight >= scrollHeight - 20) {
-            setIsScrolling(false);
+        // Calculate time elapsed since last frame in seconds
+        const elapsed = (timestamp - lastTimestamp) / 1000;
+        lastTimestamp = timestamp;
+
+        // Calculate how much to scroll this frame
+        const delta = pixelsPerSecond * elapsed;
+        accumulatedDelta += delta;
+
+        // Only scroll when we have at least 0.5px to move (prevents micro-stutters)
+        if (accumulatedDelta >= 0.5) {
+          const scrollAmount = Math.floor(accumulatedDelta);
+          accumulatedDelta -= scrollAmount;
+
+          const scrollContainer = scrollRef.current?.querySelector(
+            "[data-radix-scroll-area-viewport]",
+          );
+
+          if (scrollContainer) {
+            scrollContainer.scrollTop += scrollAmount;
+
+            // If we've reached the bottom, stop scrolling
+            const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+            if (scrollTop + clientHeight >= scrollHeight - 20) {
+              setIsScrolling(false);
+              return;
+            }
           }
         }
-      }, 50) as unknown as number;
+
+        // Continue animation loop
+        animationFrameId = requestAnimationFrame(scrollStep);
+      };
+
+      // Start the animation loop
+      animationFrameId = requestAnimationFrame(scrollStep);
     }
 
     return () => {
-      if (scrollInterval) {
-        clearInterval(scrollInterval);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
     };
   }, [isScrolling, scrollSpeed]);
@@ -150,7 +194,7 @@ const QuranText = ({
             <div
               key={ayah.number}
               data-ayah-number={ayah.number}
-              className={`relative py-4 ${currentAyah === ayah.number ? "bg-muted/30 rounded-lg p-4" : ""}`}
+              className={`relative py-4 ${currentAyah === ayah.number ? "bg-muted/30 rounded-lg p-4" : "p-4"}`}
             >
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
