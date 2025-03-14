@@ -31,7 +31,7 @@ interface Surah {
 const SurahPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const surahId = parseInt(id || "1", 10);
+  const surahId = isNaN(parseInt(id, 10)) ? 1 : parseInt(id, 10);
 
   const [surah, setSurah] = useState<Surah>({
     number: surahId,
