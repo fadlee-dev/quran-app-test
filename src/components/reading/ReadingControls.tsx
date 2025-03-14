@@ -215,7 +215,7 @@ const ReadingControls: React.FC<ReadingControlsProps> = ({
           variant={isAutoScrolling ? "default" : "outline"}
           size="sm"
           onClick={onToggleAutoScroll}
-          className="flex items-center gap-1 h-7 px-2"
+          className="flex items-center gap-1 h-7 px-2 mx-auto"
         >
           {isAutoScrolling ? (
             <>

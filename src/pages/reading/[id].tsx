@@ -26,6 +26,7 @@ const ReadingPage = () => {
 
   // State for reading mode
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const [wakeLock, setWakeLock] = useState<any>(null);
   const [scrollSpeed, setScrollSpeed] = useState(() => {
     try {
       // Get saved scroll speed from localStorage or use default
@@ -65,6 +66,27 @@ const ReadingPage = () => {
   });
 
   // Fetch surah data from API
+  // Handle visibility change to reacquire wake lock if needed
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === "visible" &&
+        isAutoScrolling &&
+        !wakeLock
+      ) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      // Release wake lock when component unmounts
+      releaseWakeLock();
+    };
+  }, [isAutoScrolling, wakeLock]);
+
   useEffect(() => {
     const fetchSurahData = async () => {
       setLoading(true);
@@ -95,9 +117,59 @@ const ReadingPage = () => {
     fetchSurahData();
   }, [surahId]);
 
-  // Handle auto-scroll toggle
-  const handleToggleAutoScroll = () => {
-    setIsAutoScrolling((prev) => !prev);
+  // Handle auto-scroll toggle and wake lock
+  const handleToggleAutoScroll = async () => {
+    setIsAutoScrolling((prev) => {
+      const newValue = !prev;
+
+      // Request or release wake lock based on auto-scroll state
+      if (newValue) {
+        requestWakeLock();
+      } else {
+        releaseWakeLock();
+      }
+
+      return newValue;
+    });
+  };
+
+  // Request wake lock to prevent device from sleeping
+  const requestWakeLock = async () => {
+    try {
+      if ("wakeLock" in navigator) {
+        const lock = await navigator.wakeLock.request("screen");
+        setWakeLock(lock);
+
+        // Add event listener to reacquire wake lock if it's released
+        lock.addEventListener("release", () => {
+          // Only try to reacquire if still auto-scrolling
+          if (isAutoScrolling) {
+            requestWakeLock();
+          }
+        });
+
+        console.log("Wake Lock acquired");
+      } else {
+        console.log("Wake Lock API not supported in this browser");
+      }
+    } catch (err) {
+      console.error("Failed to acquire Wake Lock:", err);
+    }
+  };
+
+  // Release wake lock when auto-scroll is disabled
+  const releaseWakeLock = () => {
+    if (wakeLock) {
+      wakeLock
+        .release()
+        .then(() => {
+          console.log("Wake Lock released");
+          setWakeLock(null);
+        })
+        .catch((err: any) => {
+          console.error("Failed to release Wake Lock:", err);
+        });
+    }
   };
 
   // Handle scroll speed change
